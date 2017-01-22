@@ -36,12 +36,7 @@ jspm_packages
 # Optional REPL history
 .node_repl_history
 
-.idea/workspace.xml
-.idea/dictionaries
-.idea/misc.xml
-.idea/compiler.xml
-.idea/vcs.xml
-.idea/uiDesigner.xml
+# personal .idea f
+.idea/
 
-dist
 examples/example.js
