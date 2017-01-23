@@ -27,7 +27,7 @@ If you use CommonJS, you will need to do:
 ```javascript
 var ReactParentContext = require('react-parent-context').ReactParentContext;
 ```
-Using it as a plain JavaScript file is not supported (And if you're developing React, you likely aren't doing that anuways :)
+Using it as a plain JavaScript file is not supported (And if you're developing React, you likely aren't doing that anyways :)
 
 
 You need an instance of ReactParentContext for all API's. A global instance is provided as:
