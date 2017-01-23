@@ -30,29 +30,31 @@ export default class ReactParentContext {
 	}
 
 	/**
-	 *
-	 * @param id {string,Object}
+	 * Retrieves a single persistent state for this specific context manager
+	 * @param id {string}
 	 * @returns {*}
 	 */
-	getGlobalState(id) {
-		const validated = ReactParentContext.validateContext(id, null, true);
-		id = validated.id;
+	getState(id) {
+		ReactParentContext._validateIdentifier(id);
+
 		return this.globalStates[id];
 	}
 
 	/**
-	 *
-	 * @param id {String,Object}
-	 * @param context {Object=}
+	 * Sets a single persistent state for this specific context manager
+	 * @param id {String}
+	 * @param state {Object=}
 	 * @returns {*}
 	 */
-	setGlobalState(id, context) {
-		const validated = ReactParentContext.validateContext(id, context);
-		id = validated.id;
-		context = validated.context;
+	setState(id, state) {
+		ReactParentContext._validateIdentifier(id);
+
+		if (!state) {
+			throw new Error("Please specify a state")
+		}
 
 		const previous = this.globalStates[id];
-		this.globalStates[id] = context;
+		this.globalStates[id] = state;
 		return previous;
 	}
 
@@ -71,13 +73,16 @@ export default class ReactParentContext {
 	/**
 	 * Provides a context for children to access.
 	 * @param id {string, Object} Identifier or the Context. If context is provided as id, the constructors name will be used instead.
-	 * @param context {object=} The context to provide to the respective identifier.
+	 * @param component {React.Component=} The React Component to expose
+	 * @param context {*=} If exposing something different than the component itself, the context to expose
 	 * @return {void}
 	 */
-	provideContext(id, context) {
-		const validated = ReactParentContext.validateContext(id, context);
+	provideContext(id, component, context) {
+		const validated = ReactParentContext._validate(id, component);
 		id = validated.id;
-		context = validated.context;
+		component = validated.component;
+		context = context || component || id;
+
 
 		if (!this.contexts[id]) {
 			this.contexts[id] = [];
@@ -95,36 +100,41 @@ export default class ReactParentContext {
 	}
 
 	/**
-	 * Validates an incoming id and context, handling Function > Name for ID conversion
+	 * Validates an incoming id and component, handling Function > Name for ID conversion
 	 * Validates the properties are valid or throws Error.
 	 *
+	 * @private
 	 * @param id
-	 * @param context=
-	 * @param dontValidateContext=
-	 * @returns {{id: string, context: *}}
+	 * @param component=
+	 * @param dontValidateComponent=
+	 * @returns {{id: string, component: *}}
 	 */
-	static validateContext(id, context, dontValidateContext) {
-		if (!context && id && typeof id !== 'string') {
-			if (dontValidateContext && typeof id === 'function' && id.name) {
+	static _validate(id, component, dontValidateComponent) {
+		if (!component && id && typeof id !== 'string') {
+			if (dontValidateComponent && typeof id === 'function' && id.name) {
 				id = id.name;
 			} else {
 				if (typeof id.constructor === 'function' && id.constructor.name) {
-					context = id;
+					component = id;
 					id = id.constructor.name;
 				}
 			}
 		}
 
-		if (!context && !dontValidateContext) {
-			throw new Error("Please supply a context");
+		if (!dontValidateComponent && (!component || !component.isReactComponent)) {
+			throw new Error("Please supply a React Component!");
 		}
 
-		ReactParentContext.validateIdentifier(id);
-		return {id, context};
+		ReactParentContext._validateIdentifier(id);
+		return {id, component};
 	}
 
-	static validateIdentifier(id) {
-		if (!id  || typeof id !== 'string') {
+	/**
+	 * @param id
+	 * @private
+	 */
+	static _validateIdentifier(id) {
+		if (!id || typeof id !== 'string') {
 			throw new Error("Invalid ID specified: " + id);
 		}
 	}
@@ -150,7 +160,7 @@ export class ContextRetriever {
 	 */
 	getContext(id, depth=1) {
 		depth = parseInt(depth > 0 ? depth : 1);
-		const validated = ReactParentContext.validateContext(id, null, true);
+		const validated = ReactParentContext._validate(id, null, true);
 		id = validated.id;
 
 		const context = this.contexts[id];

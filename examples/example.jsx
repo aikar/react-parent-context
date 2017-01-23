@@ -11,9 +11,12 @@ class Game extends React.Component {
 		this.state = {
 			players: ["Charlie", "Bob"]
 		};
+		this.playerName = "Charlie";
 		context.provideContext(this);
 		context.provideContext("Game-Other", this);
-		context.setGlobalState("Foo", 42);
+		context.provideContext("Test1", this);
+		context.provideContext("Test2", this, "Some Other Value");
+		context.setState("Foo", 42);
 	}
 
 	addPlayer(player) {
@@ -23,7 +26,7 @@ class Game extends React.Component {
 	}
 
 	removePlayer(player, idx) {
-		idx = idx || this.state.players.indexOf(player);
+		idx = idx !== undefined  && idx < this.state.players.length ? idx : this.state.players.indexOf(player);
 		if (idx !== -1) {
 			const players = this.state.players.slice(0);
 			players.splice(idx, 1);
@@ -34,9 +37,82 @@ class Game extends React.Component {
 	render() {
 		return <div>
 			<input id="input-box" />
+
 			<button onClick={() => {
 				this.addPlayer(document.getElementById("input-box").value)
 			}}>Add Player</button>
+
+			<PlayerPanel currentPlayer={this.playerName} />
+
+			<Test val="1">
+				<Test val="2">
+					<Test val="3">
+						<TestValidate depth="1" expected="3" />
+						<TestValidate depth="2" expected="2" />
+						<TestValidate depth="3" expected="1" />
+						<TestValidate depth="4" expected="error" />
+					</Test>
+					<Test val="4">
+						<TestValidate depth="1" expected="3" />
+					</Test>
+				</Test>
+				<Test val="5">
+					<Test val="6">
+						<TestValidate depth="1" expected="6" />
+						<TestValidate depth="2" expected="5" />
+						<Test val="7">
+							<TestValidate depth="1" expected="7" />
+							<TestValidate depth="4" expected="1" />
+						</Test>
+					</Test>
+					<Test val="8">
+						<TestValidate depth="1" expected="8" />
+						<TestValidate depth="2" expected="5" />
+					</Test>
+				</Test>
+			</Test>
+			<Test val="9">
+				<TestValidate depth="1" expected="9" />
+				<TestValidate depth="2" expected="error" />
+			</Test>
+		</div>;
+	}
+}
+class TestValidate extends React.Component {
+	constructor(props) {
+		super(props);
+		this.contextRetriever = context.obtainRetriever();
+	}
+	render() {
+		let val;
+		try {
+			val = this.contextRetriever.getContext(Test, this.props.depth).props.val;
+		} catch (e) {
+			val = "error";
+		}
+		console.log(val);
+		return <span style={{color: this.props.expected == val ? "green" : " red"}}>
+			Test Depth {this.props.depth}: {val} == {this.props.expected}<br />
+		</span>
+	}
+}
+class Test extends React.Component {
+	constructor(props) {
+		super(props);
+		context.provideContext(this);
+	}
+
+	render() {
+		return <div>
+			{this.props.children}
+		</div>;
+	}
+}
+
+class PlayerPanel extends React.Component {
+	render() {
+		return <div>
+			<h2>Hello, {this.props.currentPlayer}</h2>
 			<PlayerList />
 		</div>;
 	}
@@ -51,7 +127,10 @@ class PlayerList extends React.Component {
 	render() {
 		const game = this.contextRetriever.getContext(Game);
 		const gameOther = this.contextRetriever.getContext("Game-Other");
-		const globalState = context.getGlobalState("Foo");
+		const globalState = context.getState("Foo");
+		const test1 = this.contextRetriever.getContext("Test1");
+		const test2 = this.contextRetriever.getContext("Test2");
+
 		let errMsg = "";
 		let errMsg2 = "";
 		try {
@@ -74,10 +153,13 @@ class PlayerList extends React.Component {
 					</li>
 				))
 			}</ul>
-			Game Objects match: {game === gameOther ? "true" : "false"}<br />
-			Should be 42: {globalState}<br />
-			Got Expected Error Message: {errMsg === "Could not find context for Invalid" ? "true" : "false"}<br />
-			Got Expected Error Message2: {errMsg2 === "Could not find context for Game" ? "true" : "false: " + errMsg2}<br />
+			<h3>Run some tests</h3>
+			Game Objects match: <b>{game === gameOther ? "true" : "false"}</b><br />
+			Test1 == Game Object: <b>{test1 === game ? "true" : "false"}</b><br />
+			Test2 == "Some Other Value": <b>{test2 === "Some Other Value" ? "true" : "false"}</b><br />
+			State Key for "Foo" == 42: <b>{globalState === 42 ? "true" : "false"}</b><br />
+			Got Expected Error Message: <b>{errMsg === "Could not find context for Invalid" ? "true" : "false"}</b><br />
+			Got Expected Error Message2: <b>{errMsg2 === "Could not find context for Game" ? "true" : "false: " + errMsg2}</b><br />
 		</div>
 	}
 }
