@@ -11,6 +11,12 @@ benefits of using the official React Context API, but with less leg work definin
 This form of sharing state instead of using properties removes the need to waterfall a property down,
 avoiding passing it to intermediate components that have no understanding of the data being passed.
 
+## Requirements
+React Parent Context needs to hook into ReactDOM, so using a module system such as Webpack or 
+Browserify is a must, so that we are able to hook into the same instance of ReactDOM you are using. 
+
+Only React v15+ is supported
+
 ## Usage
 ReactParentContext has only been tested using ES6 Module Syntax with Webpack. 
 ```javascript
@@ -27,6 +33,10 @@ Using it as a plain JavaScript file is not supported (And if you're developing R
 You need an instance of ReactParentContext for all API's. A global instance is provided as:
 ```javascript
 const context = ReactParentContext.getGlobalContext();
+```
+Or you may create and manage your own instace
+```javascript
+window.contextManager = new ReactParentContext();
 ```
 
 A component that provides itself as a context must call 

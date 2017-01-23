@@ -11,13 +11,16 @@ const cloneContext = require('./cloneContext');
  * You should always retrieve a context retriever in the components constructor and store it, then use it in render.
  */
 export default class ReactParentContext {
-	static globalContext = new ReactParentContext();
+	static globalContext;
 
 	/**
 	 * Provides a global context manager.
 	 * @returns {ReactParentContext}
 	 */
 	static getGlobalContext() {
+		if (!ReactParentContext.globalContext) {
+			ReactParentContext.globalContext = new ReactParentContext();
+		}
 		return ReactParentContext.globalContext;
 	}
 
