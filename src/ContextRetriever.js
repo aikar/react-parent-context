@@ -1,17 +1,14 @@
-const assign = require('object-assign');
 const validate = require('./validate');
+const cloneContext = require('./cloneContext');
 
-export class ContextRetriever {
+export default class ContextRetriever {
 	/**
 	 * @type {Object.<string, Array>}
 	 */
 	contexts = {};
 	constructor(contexts) {
 		// Clone base keys
-		this.contexts = assign({}, contexts);
-		for (const key of Object.keys(this.contexts)) {
-			this.contexts[key] = this.contexts[key] && this.contexts[key].slice(0);
-		}
+		this.contexts = cloneContext(contexts);
 	}
 
 	/**

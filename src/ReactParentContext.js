@@ -1,6 +1,7 @@
+import ReactReconciler from "react-dom/lib/ReactReconciler";
+import ContextRetriever from "./ContextRetriever";
 const validate = require('./validate');
-const ContextRetriever = require('./ContextRetriever').ContextRetriever;
-const ContextManager = require('./ContextManager').ContextManager;
+const cloneContext = require('./cloneContext');
 
 /**
  * Provides children components in a React App to access their parent context.
@@ -10,7 +11,6 @@ const ContextManager = require('./ContextManager').ContextManager;
  * You should always retrieve a context retriever in the components constructor and store it, then use it in render.
  */
 export default class ReactParentContext {
-	static SYMBOL_POOL = 1000;
 	static globalContext = new ReactParentContext();
 
 	/**
@@ -21,16 +21,28 @@ export default class ReactParentContext {
 		return ReactParentContext.globalContext;
 	}
 
-	_symbol = '_ReactParentContext_' + ReactParentContext.SYMBOL_POOL++;
-
 	/**
+	 * The current context state
 	 * @type {Object.<string, Array.<*>>}
 	 */
 	contexts = {};
 	/**
+	 * Map of Global States (K/V Map)
 	 * @type {Object.<string, *>}
 	 */
 	globalStates = {};
+
+	constructor() {
+		const origRecon = ReactReconciler.mountComponent;
+		const self = this;
+		ReactReconciler.mountComponent = function() {
+			const prevContexts = self.contexts;
+			self.contexts = cloneContext(prevContexts);
+			const ret = origRecon.apply(this, Array.prototype.slice.apply(arguments));
+			self.contexts = prevContexts;
+			return ret;
+		};
+	}
 
 	/**
 	 * Retrieves a single persistent state for this specific context manager
@@ -61,8 +73,6 @@ export default class ReactParentContext {
 		return previous;
 	}
 
-
-
 	/**
 	 * Obtains a context retriever for the current component tree. This should only be called in the components
 	 * constructor and stored as a property on the object to be used later in render.
@@ -87,7 +97,11 @@ export default class ReactParentContext {
 		component = validated.component;
 		context = context || component || id;
 
-		ContextManager.bindManager(this, component).provide(id, context);
+		const contexts = this.contexts;
+		if (!contexts[id]) {
+			contexts[id] = [];
+		}
+		contexts[id].push(context);
 	}
 }
 

@@ -1,8 +1,8 @@
 {
     "name": "react-parent-context",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "description": "Access Parent React Component Context",
-    "main": "dist/react-parent-context.js",
+    "main": "dist/ReactParentContext.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "rm -rf dist/; node_modules/.bin/babel src/ --out-dir dist/",
@@ -38,5 +38,8 @@
     "dependencies": {
         "babel-core": "^6.22.1",
         "object-assign": "^4.1.1"
+    },
+    "peerDependencies": {
+        "react-dom": "^15.4.2"
     }
 }
