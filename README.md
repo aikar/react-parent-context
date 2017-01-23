@@ -1,4 +1,7 @@
 # React Parent Context
+## WARNING - DO NOT USE YET
+Do Not Use this project yet. A major bug was found and is requiring major changes. It is currently 'broken'
+
 ## What and Why
 React has a [Context API](https://facebook.github.io/react/docs/context.html), 
 however it is marked as "Not Public" and "May Break at any time".

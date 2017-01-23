@@ -1,9 +1,14 @@
-import ContextManager from "../react-parent-context";
+import ContextManager from "../src/ReactParentContext";
 import React from "react";
 import ReactDOM from "react-dom";
 
 const context = ContextManager.getGlobalContext();
 
+["componentWillMount", "componentDidMount", "componentWillUnmount", 'render'].forEach((key) => {
+	React.Component.prototype[key] = function() {
+		console.log((this.othername || this.constructor.name) + ": " + key);
+	}
+});
 class Game extends React.Component {
 	constructor(props, ctx) {
 		super(props, ctx);
@@ -12,10 +17,11 @@ class Game extends React.Component {
 			players: ["Charlie", "Bob"]
 		};
 		this.playerName = "Charlie";
+		console.log("Game Providing Context");
 		context.provideContext(this);
-		context.provideContext("Game-Other", this);
-		context.provideContext("Test1", this);
-		context.provideContext("Test2", this, "Some Other Value");
+		//context.provideContext("Game-Other", this);
+		//context.provideContext("Test1", this);
+		//context.provideContext("Test2", this, "Some Other Value");
 		context.setState("Foo", 42);
 	}
 
@@ -35,14 +41,15 @@ class Game extends React.Component {
 	}
 
 	render() {
+		console.log("Game Render");
 		return <div>
-			<input id="input-box" />
+			{/*<input id="input-box" />
 
 			<button onClick={() => {
 				this.addPlayer(document.getElementById("input-box").value)
 			}}>Add Player</button>
 
-			<PlayerPanel currentPlayer={this.playerName} />
+			<PlayerPanel currentPlayer={this.playerName} />*/}
 
 			<Test val="1">
 				<Test val="2">
@@ -84,25 +91,32 @@ class TestValidate extends React.Component {
 		this.contextRetriever = context.obtainRetriever();
 	}
 	render() {
+		super.render();
 		let val;
 		try {
 			val = this.contextRetriever.getContext(Test, this.props.depth).props.val;
 		} catch (e) {
 			val = "error";
 		}
-		console.log(val);
+		console.log("VALIDATE", this.props.depth, this.props.expected, val, (this.props.expected == val ? "" : " BAD"), this.contextRetriever.contexts);
 		return <span style={{color: this.props.expected == val ? "green" : " red"}}>
 			Test Depth {this.props.depth}: {val} == {this.props.expected}<br />
 		</span>
 	}
 }
+let testID = 1;
 class Test extends React.Component {
 	constructor(props) {
 		super(props);
+		this.id = testID++;
+		this.othername = "test - " + this.id + " - " + props.val;
+		//console.log("Test " + this.id + " CTOR ");
 		context.provideContext(this);
 	}
 
 	render() {
+		super.render();
+		//console.log("Test " + this.id + " Render", this.props);
 		return <div>
 			{this.props.children}
 		</div>;
@@ -121,10 +135,13 @@ class PlayerPanel extends React.Component {
 class PlayerList extends React.Component {
 	constructor(props, ctx) {
 		super(props, ctx);
+
 		this.contextRetriever = context.obtainRetriever();
+		console.log("PlayerList Obtain Retriever", this.contextRetriever);
 	}
 
 	render() {
+		console.log("PlayerList Render", this.contextRetriever);
 		const game = this.contextRetriever.getContext(Game);
 		const gameOther = this.contextRetriever.getContext("Game-Other");
 		const globalState = context.getState("Foo");
