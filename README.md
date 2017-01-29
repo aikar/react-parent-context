@@ -1,5 +1,7 @@
 # React Parent Context
 ## What and Why
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/aikar/react-parent-context.svg)](https://greenkeeper.io/)
 React has a [Context API](https://facebook.github.io/react/docs/context.html), 
 however it is marked as "Not Public" and "May Break at any time".
 
